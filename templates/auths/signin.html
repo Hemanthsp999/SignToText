@@ -1,0 +1,59 @@
+{% extends "navbar.html" %}
+{% block content %}
+<div class="container mt-5">
+  <form method="POST" action="{{url_for('Signin')}}" >
+    <div class="form-floating mb-3">
+      <input
+          type="text"
+          class="form-control"
+          id="floatingInput"
+          name="name"
+          placeholder="xzy"
+          />
+      <label for="floatingInput">Name</label>
+    </div>
+    <div class="form-floating mb-3">
+      <input
+          type="email"
+          class="form-control"
+          name="email"
+          id="floatingInput"
+          placeholder="name@example.com"
+          />
+      <label for="floatingInput">Email address</label>
+    </div>
+    <div class=" mb-3">
+      <label for="floatingInput">Are You Deaf?</label>
+      <select id="deaf" name="deaf" class="form-control">
+        <option value="1">Yes</option>
+        <option value="0">No</option>
+      </select>
+    </div>
+    <div class="form-floating mb-3">
+      <input
+          type="tel"
+          class="form-control"
+          name="phnNumber"
+          id="floatingInput"
+          placeholder="+91 xxxxx xxxxx"
+          />
+      <label for="floatingInput">Mobile Number</label>
+    </div>
+    <div class="form-floating">
+      <input
+          type="password"
+          class="form-control"
+          name="password"
+          id="floatingPassword"
+          placeholder="Password"
+          />
+      <label for="floatingPassword">Password</label>
+    </div>
+    <hr/>
+    <input class="btn btn-primary" type="submit" value="Signin"/>
+    <div class="text-end " style="margin-top: -20px; ">
+    <a href="" class="text-decoration-none" >Already have an account? Login Here</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

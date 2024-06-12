@@ -1,0 +1,51 @@
+{% extends "navbar.html" %}
+{% block title %} Lets Talk{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Lets Talk</h2>
+    <div id="webcam-container">
+    </div>
+</div>
+<script>
+    // start the video capturing
+    function startVideoCapture(){
+        const webcamContainer = document.getElementById('webcam-container');
+        const video = document.createElement('video');
+        video.autoplay = true;
+
+        navigator.mediaDevices.getUserMedia({video: true})
+            .then(function(stream){
+                video.srcObject = stream;
+                webcamContainer.appendChild(video);
+            })
+            .catch(function(error){
+                console.error("Error accessing webcam", error);
+            });
+    }
+    function stopVideoCapture() {
+        const webcamContainer = document.getElementById('webcam-container');
+        const video = webcamContainer.querySelector('video');
+
+        if (video) {
+            const stream = video.srcObject;
+            const tracks = stream.getTracks();
+
+            tracks.forEach(function(track) {
+                track.stop();
+            });
+
+            video.srcObject = null;
+            webcamContainer.removeChild(video);
+        }
+    }
+
+    // Call startVideoCapture when the page loads
+    startVideoCapture();
+
+    // Call stopVideoCapture when the user navigates away
+    window.addEventListener('beforeunload', function(event) {
+        stopVideoCapture();
+    });
+</script>
+{% endblock %}
