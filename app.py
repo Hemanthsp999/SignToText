@@ -1,6 +1,8 @@
 from flask import Flask, url_for, session, render_template, request, redirect
 from database import connection
+from ultralytics import YOLO
 import bcrypt
+import cv2
 
 app = Flask(__name__)
 app.secret_key = 'ThisIsASecretKey'  # Ensure this is set for session management
@@ -12,6 +14,17 @@ def Home():
         return render_template("index.html")
     else:
         return redirect(url_for('Login'))
+
+# Function to Process the sign images
+
+
+def process_frame():
+    if 'user' in session:
+
+        model = YOLO("yolo-weights/yolov8n.pt")
+
+        while True:
+            cv2.imshow("webcam",)
 
 
 @app.route("/letstalk", methods=["GET"])
