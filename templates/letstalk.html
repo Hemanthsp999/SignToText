@@ -4,27 +4,26 @@
 {% block content %}
 <div class="container">
     <h2>Lets Talk</h2>
-    <div id="webcam-container">
-    </div>
+    <div id="webcam-container"></div>
+    <div id="results-container"></div>
 </div>
 <script>
-    // start the video capturing
-    function startVideoCapture(){
+    function startVideoCapture() {
         const webcamContainer = document.getElementById('webcam-container');
         const video = document.createElement('video');
+        video.id = "video";
         video.autoplay = true;
 
-        navigator.mediaDevices.getUserMedia({video: true})
-            .then(function(stream){
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
                 video.srcObject = stream;
                 webcamContainer.appendChild(video);
             })
-            .catch(function(error){
+            .catch(function (error) {
                 console.error("Error accessing webcam", error);
             });
     }
 
-    // function to video capture
     function stopVideoCapture() {
         const webcamContainer = document.getElementById('webcam-container');
         const video = webcamContainer.querySelector('video');
@@ -33,7 +32,7 @@
             const stream = video.srcObject;
             const tracks = stream.getTracks();
 
-            tracks.forEach(function(track) {
+            tracks.forEach(function (track) {
                 track.stop();
             });
 
@@ -42,37 +41,54 @@
         }
     }
 
-    function captureFrame(){
+    function captureFrame() {
+        const video = document.getElementById('video');
         const canvas = document.createElement('canvas');
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
         const context = canvas.getContext('2d');
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const frame = canvas.toDataURL('image/jpeg');
+        const frame = canvas.toDataURL('image/jpeg').split(',')[1];
 
-        // send frame to the backend
-
-        fetch('/process_frame',{
+        fetch('/processFrame', {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.Stringify({image: frame})
+            body: JSON.stringify({ image: frame })
         })
-            .then(response => response.json())
-            .then(data => { console.log('Response from server: ', data)})
-            .catch(error =>{ console.error('Error: ',error)});
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return response.json();
+        })
+        .then(data => { 
+            console.log('Response from server: ', data);
+            displayResults(data.predictions);
+        })
+        .catch(error =>{ 
+            console.error('Error: ', error);
+        });
     }
 
-    // Call startVideoCapture when the page loads
+    function displayResults(predictions) {
+        const resultsContainer = document.getElementById('results-container');
+        resultsContainer.innerHTML = '';
+        predictions.forEach(prediction => {
+            const result = document.createElement('div');
+            result.innerHTML = `Label: ${prediction.label}, Confidence: ${prediction.confidence}, Box: ${prediction.box}`;
+            resultsContainer.append(result);
+        });
+    }
+
     startVideoCapture();
 
-    // Call stopVideoCapture when the user navigates away
-    window.addEventListener('beforeunload', function(event) {
+    window.addEventListener('beforeunload', function (event) {
         stopVideoCapture();
     });
 
-    // Capture frames
-    intervalId = setInterval(captureFrame, 1000);
+    setInterval(captureFrame, 1000);
 </script>
 {% endblock %}
+

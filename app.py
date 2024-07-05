@@ -1,11 +1,15 @@
-from flask import Flask, url_for, session, render_template, request, redirect
+from flask import Flask, url_for, session, render_template, request, redirect, jsonify
 from database import connection
 from ultralytics import YOLO
 import bcrypt
-import cv2
+import base64
+import numpy as np
+from io import BytesIO
+from PIL import Image
 
 app = Flask(__name__)
-app.secret_key = 'ThisIsASecretKey'  # Ensure this is set for session management
+# Ensure this is set for session management
+app.secret_key = 'ThisIsASecretKeyYou'
 
 
 @app.route("/")
@@ -15,19 +19,37 @@ def Home():
     else:
         return redirect(url_for('Login'))
 
-# Function to Process the sign images
 
-
+@app.route("/processFrame", methods=["POST"])
 def process_frame():
     if 'user' in session:
+        data = request.get_json()
 
-        model = YOLO("yolo-weights/yolov8n.pt")
+        if not data or 'image' not in data:
+            return jsonify({"status": "error", "message": "No image data provided"}), 400
+        image_data = data['image']
+        image = Image.open(BytesIO(base64.b64decode(image_data)))
 
-        while True:
-            cv2.imshow("webcam",)
+        model = YOLO("runs/detect/train/weights/best.pt")
+        results = model.predict(source=np.array(image))
+
+        predictions = []
+        for result in results:
+            for box in result.boxes:
+                predictions.append({
+                    'label': box.label,
+                    'confidence': box.confidence,
+                    'box': box.xyxy.tolist()
+                })
+
+        print("Predictions", predictions)
+
+        return jsonify({"status": "success", "predictions": predictions})
+    else:
+        return jsonify({"status": "error", "message": "user not authenticated"}), 401
 
 
-@app.route("/letstalk", methods=["GET"])
+@app.route("/letstalk", methods=["GET", "POST"])
 def LetsTalk():
     if 'user' in session:
         return render_template("letstalk.html")
@@ -41,40 +63,24 @@ def Login():
         email = request.form.get('email')
         password = request.form.get('password')
 
-        # Debugging print statement
-        print(f"Login attempt with email: {email}")
-
         try:
             c, conn = connection()
             c.execute("SELECT * FROM UserDetails WHERE EMAIL=%s", [email])
             user = c.fetchone()
 
             if user:
-                print(f"User found: {user}")  # Debugging print statement
                 stored_hash = user[4]
 
-                # Ensure stored_hash is a string
                 if isinstance(stored_hash, bytes):
                     stored_hash = stored_hash.decode('utf-8')
-                else:
-                    print("Stored Password is not in hash")
 
                 if bcrypt.checkpw(password.encode('utf-8'), stored_hash.encode('utf-8')):
-                    # Assuming user[1] is the username
                     session['user'] = user[1]
-                    # Debugging print statement
-                    print("User logged in: ", session['user'])
                     return redirect(url_for('Home'))
-                else:
-                    print("Password check failed")  # Debugging print statement
-            else:
-                print("User not found")  # Debugging print statement
-
             error = "Incorrect email or password"
             return render_template('auths/login.html', error=error)
         except Exception as e:
             err = f"Error occurred: {e}"
-            print(err)  # Debugging print statement
             return render_template('auths/login.html', error=err)
         finally:
             if 'c' in locals() and c:
@@ -88,7 +94,6 @@ def Login():
 @app.route('/logout')
 def Logout():
     session.pop('user', None)
-    print("User Loged out")
     return redirect(url_for('Login'))
 
 
@@ -99,10 +104,15 @@ def Signin():
         email = request.form['email']
         phnNumber = request.form['phnNumber']
         password = request.form['password']
+        rePassword = request.form['re-password']
         radioBtn = request.form['deaf']
 
-        hashed_password = bcrypt.hashpw(
-            password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        if password == rePassword:
+            hashed_password = bcrypt.hashpw(
+                password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+        else:
+            return "Enter correct password "
+
         c, con = connection()
 
         try:
@@ -125,3 +135,4 @@ def Signin():
 
 if __name__ == "__main__":
     app.run(debug=True)
+
