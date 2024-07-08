@@ -12,7 +12,7 @@ Start Virtual Envoirnment
 python3 -m venv env
 ```
 
-Source the Envoirnment
+Source the Environment
 ```bash
 source env/bin/activate
 ```

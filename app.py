@@ -24,27 +24,34 @@ def Home():
 def process_frame():
     if 'user' in session:
         data = request.get_json()
+        model = YOLO("runs/detect/train/weights/best.pt")
 
         if not data or 'image' not in data:
             return jsonify({"status": "error", "message": "No image data provided"}), 400
+
         image_data = data['image']
         image = Image.open(BytesIO(base64.b64decode(image_data)))
+        print(image)
 
-        model = YOLO("runs/detect/train/weights/best.pt")
-        results = model.predict(source=np.array(image))
+        results = model.predict(source=image)
 
-        predictions = []
-        for result in results:
-            for box in result.boxes:
-                predictions.append({
-                    'label': box.label,
-                    'confidence': box.confidence,
-                    'box': box.xyxy.tolist()
-                })
+        try:
+            predictions = []
 
-        print("Predictions", predictions)
+            for result in results:
+                for box in results.boxes:
+                    predictions.append({
+                        "Label": box.label,
+                        "confidence": box.confidence,
+                        "box": box.xyxy.tolist()
+                    })
 
-        return jsonify({"status": "success", "predictions": predictions})
+            print(results)
+
+            return jsonify({"status": "success", "predictions": image})
+        except Exception as e:
+            print(f"Error processing frames: {e}")
+            return jsonify({"Status": "Error", "message": "Error processing frame"}), 500
     else:
         return jsonify({"status": "error", "message": "user not authenticated"}), 401
 
@@ -135,4 +142,3 @@ def Signin():
 
 if __name__ == "__main__":
     app.run(debug=True)
-

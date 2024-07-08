@@ -3,9 +3,16 @@
 
 {% block content %}
 <div class="container">
+    <div class="row">
     <h2>Lets Talk</h2>
     <div id="webcam-container"></div>
-    <div id="results-container"></div>
+    </div>
+   <div class="row">
+        <div id="results-container">
+        <textarea for="results-container" style="width: 1000px; height: 300px">
+        </textarea>
+        </div>
+   </div>
 </div>
 <script>
     function startVideoCapture() {
@@ -55,7 +62,7 @@
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ image: frame })
+            body: JSON.stringify({ 'image': frame })
         })
         .then(response => {
             if (!response.ok) {
@@ -68,7 +75,7 @@
             displayResults(data.predictions);
         })
         .catch(error =>{ 
-            console.error('Error: ', error);
+            console.error('Something is not correct: ', error);
         });
     }
 
@@ -78,7 +85,7 @@
         predictions.forEach(prediction => {
             const result = document.createElement('div');
             result.innerHTML = `Label: ${prediction.label}, Confidence: ${prediction.confidence}, Box: ${prediction.box}`;
-            resultsContainer.append(result);
+            resultsContainer.appendChild(result);
         });
     }
 
