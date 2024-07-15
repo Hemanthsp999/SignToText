@@ -24,5 +24,5 @@ python app.py
 
 ## Setup the Database
 
-![Database Setup](Database.png)
+![Database Setup](images/Database.png)
 
