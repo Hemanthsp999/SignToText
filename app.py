@@ -24,33 +24,43 @@ def Home():
 def process_frame():
     if 'user' in session:
         data = request.get_json()
-        model = YOLO("runs/detect/train/weights/best.pt")
 
         if not data or 'image' not in data:
             return jsonify({"status": "error", "message": "No image data provided"}), 400
 
-        image_data = data['image']
-        image = Image.open(BytesIO(base64.b64decode(image_data)))
-        print(image)
-
-        results = model.predict(source=image)
-
         try:
-            predictions = []
+            model = YOLO("runs/detect/train/weights/best.pt")
+            print("Model Loaded Successfully...\n")
+            image_data = data['image']
+            image = Image.open(BytesIO(base64.b64decode(image_data)))
+            print("Image Decoded Successfully....\n", image)
 
-            for result in results:
-                for box in results.boxes:
-                    predictions.append({
-                        "Label": box.label,
-                        "confidence": box.confidence,
-                        "box": box.xyxy.tolist()
-                    })
+            results = model.predict(source=np.array(image))
 
-            print(results)
+            if not results:
+                print("Model is not Predicting", str(results))
 
-            return jsonify({"status": "success", "predictions": image})
+            else:
+                print("Model is predictiing", str(base64.encodebytes(results)))
+                predictions = []
+
+                for result in results:
+                    print("Decoded Image is : %s", result)
+                    if hasattr(result, 'boxes') and result.boxes:
+                        for box in result.boxes:
+                            prediction = {
+                                "label": box.label if hasattr(box, 'lable') else None,
+                                "confidence": float(box.confidence) if hasattr(box, 'confidence') else None,
+                                "box": box.xyxy.tolist() if hasattr(box, 'xyxy') else None,
+                            }
+                            predictions.append(prediction)
+                            print("Predicted Result : ", predictions)
+                    else:
+                        print("No Boxes", result)
+
+                return jsonify({"status": "success", "predictions": predictions})
         except Exception as e:
-            print(f"Error processing frames: {e}")
+            print(f"Error processing frames %s: {e}")
             return jsonify({"Status": "Error", "message": "Error processing frame"}), 500
     else:
         return jsonify({"status": "error", "message": "user not authenticated"}), 401
