@@ -22,7 +22,7 @@ Then execute the file
 python app.py
 ```
 
-## Setup the Database
+## Database setup
 
 ![Database Setup](images/Database.png)
 
