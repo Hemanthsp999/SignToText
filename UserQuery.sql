@@ -1,16 +1,16 @@
-import sqlite3
+import database
 
-conn = sqlite3.connect('TalkToMe')
+conn = connection()
 c = conn.cursor()
 
 # Create table
 c.execute('''CREATE TABLE UserDetails
              (ID INTEGER PRIMARY KEY AUTOINCREMENT,
-              NAME TEXT NOT NULL,
-              EMAIL TEXT NOT NULL,
-              PHONE_NUMBER TEXT NOT NULL,
-              PASSWORD TEXT NOT NULL,
-              DEAF TEXT NOT NULL)''')
+              NAME VARCHAR(100) NOT NULL,
+              EMAIL VARCHAR UNIQUE NOT NULL,
+              PHONE_NUMBER INT(100) NOT NULL,
+              PASSWORD VARCHAR(100) NOT NULL,
+              DEAF INT(2) NOT NULL)''')
 
 conn.commit()
 conn.close()
