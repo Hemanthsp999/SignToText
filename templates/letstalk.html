@@ -3,99 +3,100 @@
 
 {% block content %}
 <div class="container">
-    <div class="row">
-    <h2>Lets Talk</h2>
-    <div id="webcam-container"></div>
-    </div>
-   <div class="row">
-        <div id="results-container">
-        <textarea for="results-container" style="width: 1000px; height: 300px">
-        </textarea>
-        </div>
-   </div>
+   <div class="row">
+       <h2>Lets Talk</h2>
+       <div id="webcam-container"></div>
+   </div>
+   <div class="row">
+       <div id="results-container"></div>
+   </div>
 </div>
 <script>
-    function startVideoCapture() {
-        const webcamContainer = document.getElementById('webcam-container');
-        const video = document.createElement('video');
-        video.id = "video";
-        video.autoplay = true;
+   async function captureFrame() {
+        try{
+           const video = document.getElementById('video');
+           if(!video){
+                console.error('Video element not found');
+                return;
+            }
+    
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const context = canvas.getContext('2d');
+            context.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const frame = canvas.toDataURL('image/jpeg').split(',')[1];
 
-        navigator.mediaDevices.getUserMedia({ video: true })
-            .then(function (stream) {
-                video.srcObject = stream;
-                webcamContainer.appendChild(video);
-            })
-            .catch(function (error) {
-                console.error("Error accessing webcam", error);
-            });
-    }
+            const response = await fetch('/processFrame', {
+                  method: "POST",
+                  headers: {
+                     'Content-Type': 'application/json'
+                  },
+                  body: JSON.stringify({ 'image': frame })
+            });
+            if(!response.ok){
+                const errorText = await response.text();
+                console.error(`Error: ${response.status} - ${response.statusText}`);
+                throw new Error('Network response was not ok');
+            }
 
-    function stopVideoCapture() {
-        const webcamContainer = document.getElementById('webcam-container');
-        const video = webcamContainer.querySelector('video');
+            const data = await response.json();
+            console.log('Response from server: ', data);
+            displayResults(data.predictions);
+      
 
-        if (video) {
-            const stream = video.srcObject;
-            const tracks = stream.getTracks();
-
-            tracks.forEach(function (track) {
-                track.stop();
-            });
-
-            video.srcObject = null;
-            webcamContainer.removeChild(video);
+        } catch(error){
+            console.error('Something is not correct: ', error);
         }
     }
 
-    function captureFrame() {
-        const video = document.getElementById('video');
-        const canvas = document.createElement('canvas');
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const context = canvas.getContext('2d');
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const frame = canvas.toDataURL('image/jpeg').split(',')[1];
+   function displayResults(predict_text) {
+       const resultsContainer = document.getElementById('results-container');
+       resultsContainer.textContent = predict_text;
+       console.log("Predicted Text", predict_text);
+   }
 
-        fetch('/processFrame', {
-            method: "POST",
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ 'image': frame })
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return response.json();
-        })
-        .then(data => { 
-            console.log('Response from server: ', data);
-            displayResults(data.predictions);
-        })
-        .catch(error =>{ 
-            console.error('Something is not correct: ', error);
-        });
-    }
+   function startVideoCapture() {
+       const webcamContainer = document.getElementById('webcam-container');
+       const video = document.createElement('video');
+       video.id = "video";
+       video.autoplay = true;
 
-    function displayResults(predictions) {
-        const resultsContainer = document.getElementById('results-container');
-        resultsContainer.innerHTML = '';
-        predictions.forEach(prediction => {
-            const result = document.createElement('div');
-            result.innerHTML = `Label: ${prediction.label}, Confidence: ${prediction.confidence}, Box: ${prediction.box}`;
-            resultsContainer.appendChild(result);
-        });
-    }
+       navigator.mediaDevices.getUserMedia({ video: true })
+           .then(function (stream) {
+               video.srcObject = stream;
+               webcamContainer.appendChild(video);
+           })
+           .catch(function (error) {
+               console.error("Error accessing webcam", error);
+           });
+   }
 
-    startVideoCapture();
+   function stopVideoCapture() {
+       const webcamContainer = document.getElementById('webcam-container');
+       const video = webcamContainer.querySelector('video');
 
-    window.addEventListener('beforeunload', function (event) {
-        stopVideoCapture();
-    });
+       if (video) {
+           const stream = video.srcObject;
+           const tracks = stream.getTracks();
 
-    setInterval(captureFrame, 1000);
+           tracks.forEach(function (track) {
+               track.stop();
+           });
+
+           video.srcObject = null;
+           webcamContainer.removeChild(video);
+       }
+   }
+
+
+   startVideoCapture();
+
+   window.addEventListener('beforeunload', function (event) {
+       stopVideoCapture();
+   });
+
+   setInterval(captureFrame, 1000);
 </script>
 {% endblock %}
 

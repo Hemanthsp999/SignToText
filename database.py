@@ -1,9 +1,17 @@
-import mysql.connector
+import MySQLdb
+
+"""
+import sqlite3
+def connection():
+    conn = sqlite3.connect('TalkToMe.db')
+    c = conn.cursor()
+    return c,conn
+"""
 
 
 def connection():
-    conn = mysql.connector.connect(host="localhost", user="root",
-                                   password="hemanthsp", database="TalkToMe")
+    conn = MySQLdb.connect(host="localhost", user="****",
+                           password="*****", database="TalkToMe")
     c = conn.cursor()
 
     return c, conn
