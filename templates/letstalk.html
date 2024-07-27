@@ -8,10 +8,15 @@
        <div id="webcam-container"></div>
    </div>
    <div class="row">
+        <h5>Welcome </h5>
        <div id="results-container"></div>
    </div>
 </div>
 <script>
+  // Extracts the character
+   let currentWord = '';
+  // stores every characters and slice it as words
+   let wordList = [];
    async function captureFrame() {
         try{
            const video = document.getElementById('video');
@@ -27,17 +32,18 @@
             context.drawImage(video, 0, 0, canvas.width, canvas.height);
             const frame = canvas.toDataURL('image/jpeg').split(',')[1];
 
-            const response = await fetch('/processFrame', {
+            const response = await fetch(`http://127.0.0.1:5000/processFrame`, {
                   method: "POST",
                   headers: {
                      'Content-Type': 'application/json'
                   },
-                  body: JSON.stringify({ 'image': frame })
+                  body: JSON.stringify({ "image": frame })
             });
             if(!response.ok){
                 const errorText = await response.text();
-                console.error(`Error: ${response.status} - ${response.statusText}`);
-                throw new Error('Network response was not ok');
+                console.error(`Error: ${response.status} - ${response.statusText}: ${errorText}`);
+                throw new Error('Network error')
+            
             }
 
             const data = await response.json();
@@ -50,10 +56,26 @@
         }
     }
 
-   function displayResults(predict_text) {
-       const resultsContainer = document.getElementById('results-container');
-       resultsContainer.textContent = predict_text;
-       console.log("Predicted Text", predict_text);
+
+   function displayResults(predictions) {
+      const resultsContainer = document.getElementById('results-container');
+      const maxWords = 5;
+      // lenght of the line
+      let formatText = '';
+      // initially its in null char
+      let wordCount = 0;
+      // keep track of number of words 
+
+      predictions.split('_').forEach(word => {
+          // its splits when it encounters " _ " character and makes it as words 
+          formatText += word + ' ';
+          wordCount++;
+          if(wordCount >= maxWords){
+              formatText += '<br>';
+              wordCount = 0;
+          }
+      });
+       resultsContainer.innerHTML = formatText;
    }
 
    function startVideoCapture() {

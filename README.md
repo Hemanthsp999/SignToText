@@ -1,23 +1,23 @@
-# A web application platform to overcome the communication barrier between a Deaf and Normal people
-# This platform uses client sign and convert it into text which can be read by others.
+# ISL(Indian Sign Language) Web Application Platform
+## This platform converts sign language into text, allowing for better communication between deaf and hearing individuals.
 
 ## How To Execute ?
-
+### 1.Navigate to the Project Directory:
 ```bash
 cd SignToText/
 ```
 
-Start Virtual Envoirnment
+2.Start Virtual Environment
 ```bash
 python3 -m venv env
 ```
 
-Source the Environment
+3.Activate the Virutal Environment:
 ```bash
 source env/bin/activate
 ```
 
-Then execute the file
+4.Run the Application
 ```bash
 python app.py
 ```

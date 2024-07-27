@@ -1,21 +1,18 @@
 from flask import Flask, url_for, session, render_template, request, redirect, jsonify
-from flask_cors import CORS
 from database import connection
 from ultralytics import YOLO
 import bcrypt
 import base64
-import time
-import numpy as np
-import os
-from io import BytesIO
-from PIL import Image, ImageDraw
+import io
+from PIL import Image
 
 app = Flask(__name__)
 # Ensure this is set for session management
 app.secret_key = 'ThisIsASecretKeyYou'
-CORS(app)
 
-model = YOLO("runs/detect/train/weights/best.pt")
+model = YOLO("runs/detect/train3/weights/best.pt")
+
+prediction_buffer = []
 
 
 @app.route("/")
@@ -42,47 +39,38 @@ def processFrame():
         try:
             image_data = data['image']
             if image_data:
-                timestamp = int(time.time())
-                image = Image.open(BytesIO(base64.b64decode(image_data)))
+                image_bytes = base64.b64decode(image_data)
+                image = Image.open(io.BytesIO(image_bytes))
                 print("Image Decoded Successfully")
-                print(image)
-
-                image_path = os.path.join(
-                    'saved_images', f'decodeImage_{timestamp}.jpg')
-                if not os.path.exists('saved_images'):
-                    os.makedirs('saved_images')
-                image.save(image_path)
-                app.logger.info(f"Image saved to {image_path}")
 
                 print("Running model prediction...")
-                results = model(source=np.array(image))
-                result_path = os.path.join(
-                    'predict_images', f'predictImages_{timestamp}.jpg')
-                if not os.path.exists('predict_images'):
-                    os.makedirs('predict_images')
-                app.logger.info(f"Image saved to {result_path}")
+
+                results = model(image)
 
                 predictions = []
 
                 if results:
                     print("Results found, processing predictions...")
                     for result in results:
-                        result.save(result_path)
                         if hasattr(result, 'boxes'):
                             for box in result.boxes:
                                 label_index = int(box.cls[0])
                                 label = model.names[label_index]
-                                confidence = float(box.confidence)
+                                confidence = float(box.conf[0])
                                 predictions.append(
                                     {"label": label, "confidence": confidence})
 
-                if predictions:
-                    predict_text = ', '.join([f"{pred['label']}"
-                                              for pred in predictions])
-                    return jsonify({"status": "success", "predictions": predict_text}), 200
-                else:
+                if not predictions:
                     print("No predictions made.")
                     return jsonify({"status": "error", "message": "No sign language gesture detected"}), 400
+
+                # append new predictions to buffer
+                for pred in predictions:
+                    prediction_buffer.append(pred['label'])
+
+                predict_text = ''.join(prediction_buffer)
+                print("Prediction\t ", predict_text)
+                return jsonify({"status": "success", "predictions": predict_text})
 
         except Exception as e:
             print(f"Error processing frames: {e}")
@@ -91,7 +79,7 @@ def processFrame():
         return jsonify({"status": "error", "message": "user not authenticated"}), 401
 
 
-@app.route("/letstalk", methods=["GET", "POST"])
+@ app.route("/letstalk", methods=["GET", "POST"])
 def LetsTalk():
     if 'user' in session:
         return render_template("letstalk.html")
@@ -99,7 +87,7 @@ def LetsTalk():
         return redirect(url_for('Login'))
 
 
-@app.route("/login", methods=["GET", "POST"])
+@ app.route("/login", methods=["GET", "POST"])
 def Login():
     if request.method == "POST":
         email = request.form.get('email')
@@ -133,13 +121,13 @@ def Login():
     return render_template('auths/login.html')
 
 
-@app.route('/logout')
+@ app.route('/logout')
 def Logout():
     session.pop('user', None)
     return redirect(url_for('Login'))
 
 
-@app.route("/signin", methods=["GET", "POST"])
+@ app.route("/signin", methods=["GET", "POST"])
 def Signin():
     if request.method == "POST":
         name = request.form['name']
