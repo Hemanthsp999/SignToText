@@ -10,7 +10,7 @@ app = Flask(__name__)
 # Ensure this is set for session management
 app.secret_key = 'ThisIsASecretKeyYou'
 
-model = YOLO("runs/detect/train3/weights/best.pt")
+model = YOLO("runs/detect/best.pt")
 
 prediction_buffer = []
 
