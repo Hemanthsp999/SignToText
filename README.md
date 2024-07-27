@@ -27,6 +27,7 @@ python app.py
 ```
 
 ## Database setup
+Below is the database schema for the application:
 
 ![Database Setup](images/Database.png)
 
