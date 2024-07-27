@@ -1,3 +1,7 @@
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
 # ISL(Indian Sign Language) Web Application Platform
 ## This platform converts sign language into text, allowing for better communication between deaf and hearing individuals.
 
