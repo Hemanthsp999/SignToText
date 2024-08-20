@@ -28,12 +28,13 @@ Below is the database schema for the application:
 ![Database Setup](images/Database.png)
 
 ## Model Training using YOLO
+## Key Note: you can improve the models accuracy by training the more photos with different Lighting effects and position of hand. Use YOLO for training purpose and replace "runs" with your "path/to/your/best.pt"
 ![Training Images](images/trainImage.jpg)
 
 ## Final Real Time sign detection
-![Watch Video](TrainVideo1.mp4)
+![Watch Video](images/TrainVideo1.mp4)
 
-![Watch Video](TrainVideo2.mp4)
+![Watch Video](images/TrainVideo2.mp4)
 
 ## License
 
