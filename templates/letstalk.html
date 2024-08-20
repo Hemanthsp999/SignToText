@@ -84,14 +84,18 @@
        video.id = "video";
        video.autoplay = true;
 
-       navigator.mediaDevices.getUserMedia({ video: true })
-           .then(function (stream) {
-               video.srcObject = stream;
-               webcamContainer.appendChild(video);
-           })
-           .catch(function (error) {
-               console.error("Error accessing webcam", error);
-           });
+             if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+                   navigator.mediaDevices.getUserMedia({ video: true })
+                .then(function (stream) {
+                                 video.srcObject = stream;
+                                 webcamContainer.appendChild(video);
+                             })
+                         .catch(function (error) {
+                                 console.error("Error accessing webcam", error);
+                             });
+      } else{
+          console.error("GetUserMedia not supported in this browser");
+      }
    }
 
    function stopVideoCapture() {
@@ -118,7 +122,7 @@
        stopVideoCapture();
    });
 
-   setInterval(captureFrame, 1000);
+    setInterval(captureFrame,1000);
 </script>
 {% endblock %}
 

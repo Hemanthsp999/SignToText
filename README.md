@@ -27,6 +27,14 @@ Below is the database schema for the application:
 
 ![Database Setup](images/Database.png)
 
+## Model Training using YOLO
+![Training Images](images/trainImage.jpg)
+
+## Final Real Time sign detection
+![Watch Video](TrainVideo1.mp4)
+
+![Watch Video](TrainVideo2.mp4)
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
