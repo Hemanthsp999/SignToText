@@ -32,7 +32,7 @@ Below is the database schema for the application:
 ![Training Images](images/trainImage.jpg)
 
 ## Final Real Time sign detection
-[Watch Video](images/TrainVideo1.mp4)
+[Watch Video](images/TrainVideo1_compressed.mp4)
 
 [Watch Video](images/TrainVideo2.mp4)
 
